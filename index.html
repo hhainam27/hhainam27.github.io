@@ -4,14 +4,33 @@
   <meta charset="UTF-8" />
   <title>Random Manga Redirect</title>
   <style>
-    body { background: #0f0f0f; color: #fff; font-family: sans-serif; text-align: center; padding-top: 20vh; }
-    h1 { color: #f472b6; text-shadow: 0 0 10px #f472b6; }
+    body {
+      background: #0f0f0f;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 20vh;
+    }
+    h1 {
+      color: #f472b6;
+      text-shadow: 0 0 10px #f472b6;
+    }
+    button {
+      padding: 1em 2em;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #f472b6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(244,114,182,0.5);
+    }
   </style>
 </head>
 <body>
   <h1>🎲 Đang chọn manga ngẫu nhiên...</h1>
   <p>Nếu lâu, vui lòng nhấn nút bên dưới:</p>
-  <button id="retryBtn" style="padding:1em 2em; font-size:1rem; cursor:pointer;">Chọn lại</button>
+  <button id="retryBtn" style="display:none;">Chọn lại</button>
 
   <script>
     async function randomRedirect() {
@@ -19,8 +38,10 @@
         const proxy = "https://corsproxy.io/?url=";
         const apiUrl = encodeURIComponent("https://cuutruyen.net/api/v2/teams/1/mangas/recently_updated?page=1&per_page=50");
         const res = await fetch(proxy + apiUrl);
+        if (!res.ok) throw new Error("HTTP error " + res.status);
         const json = await res.json();
-        if (!Array.isArray(json.data) || json.data.length === 0) throw new Error("No data");
+
+        if (!Array.isArray(json.data) || json.data.length === 0) throw new Error("No manga data");
 
         const random = json.data[Math.floor(Math.random() * json.data.length)];
         const url = `https://cuutruyen.net/mangas/${random.id}`;
@@ -33,15 +54,19 @@
         a.click();
         a.remove();
 
-        setTimeout(() => { window.location.href = url; }, 300);
+        // Fallback nếu popup bị chặn
+        setTimeout(() => {
+          window.location.href = url;
+        }, 300);
       } catch (err) {
-        console.error(err);
-        document.getElementById("retryBtn").style.display = "inline-block";
+        console.error("❌ Error fetching page:", err);
+        document.body.innerHTML = '<h2 style="color: red; text-align: center;">Không thể tải danh sách manga</h2>';
       }
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("retryBtn").addEventListener("click", randomRedirect);
+      const btn = document.getElementById("retryBtn");
+      btn.addEventListener("click", () => location.reload());
       randomRedirect();
     });
   </script>
