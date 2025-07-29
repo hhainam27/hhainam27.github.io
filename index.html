@@ -32,63 +32,41 @@
   <p>Nếu lâu, vui lòng nhấn nút bên dưới:</p>
   <button id="retryBtn" style="display:none;">Chọn lại</button>
 
-    <script>
-      function waitForElm(selector) {
-        return new Promise((resolve) => {
-          if (document.querySelector(selector)) {
-            return resolve(document.querySelector(selector));
-          }
+  <script>
+    async function randomRedirect() {
+      try {
+        const res = await fetch("https://cuutruyen.net/api/v2/teams/1/mangas/recently_updated?page=1&per_page=50");
+        if (!res.ok) throw new Error("HTTP error " + res.status);
+        const json = await res.json();
 
-          const observer = new MutationObserver((mutations) => {
-            if (document.querySelector(selector)) {
-              observer.disconnect();
-              resolve(document.querySelector(selector));
-            }
-          });
+        if (!Array.isArray(json.data) || json.data.length === 0) throw new Error("No manga data");
 
-          observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-          });
-        });
+        const random = json.data[Math.floor(Math.random() * json.data.length)];
+        const url = `https://cuutruyen.net/mangas/${random.id}`;
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        // Fallback nếu popup bị chặn
+        setTimeout(() => {
+          window.location.href = url;
+        }, 300);
+      } catch (err) {
+        console.error("❌ Error fetching page:", err);
+        document.body.innerHTML = '<h2 style="color: red; text-align: center;">Không thể tải danh sách manga</h2>';
       }
+    }
 
-      waitForElm("body").then((randomBtn) => {
-        let fetchedMangas = [];
-        const perPage = 50;
-        let currentPage = 1;
-        let totalPages = null;
-        let totalCount = 0;
-
-        async function redirectRandomManga(page = 1) {
-          const url = `https://cuutruyen.net/api/v2/teams/485/mangas/recently_updated?page=${page}&per_page=${perPage}`;
-
-          try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error("HTTP error " + response.status);
-            const json = await response.json();
-
-            if (totalPages === null) {
-              totalPages = json._metadata.total_pages;
-              const randomPage = Math.floor(Math.random() * totalPages);
-              await redirectRandomManga(currentPage);
-            } else {
-              fetchedMangas = json.data;
-              const randomManga =
-                fetchedMangas[Math.floor(Math.random() * fetchedMangas.length)];
-              if (randomManga) {
-                const mangaUrl = `https://cuutruyen.net/mangas/${randomManga.id}`;
-                window.location.href = mangaUrl;
-              }
-            }
-          } catch (err) {
-            console.error("❌ Error fetching page:", err);
-            document.body.innerHTML =
-              '<h2 style="color: red; text-align: center;">Không thể tải danh sách manga</h2>;';
-          }
-        }
-        redirectRandomManga();
-      });
-    </script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("retryBtn");
+      btn.addEventListener("click", () => location.reload());
+      randomRedirect();
+    });
+  </script>
 </body>
 </html>
