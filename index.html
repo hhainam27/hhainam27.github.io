@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Chuyển hướng truyện ngẫu nhiên...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;padding-top:20%;">
+  <h1>🔄 Đang chuyển hướng đến một truyện ngẫu nhiên...</h1>
+  <p>Vui lòng đợi một chút nhé!</p>
+  <script>
+    const links = [
+      "https://cuutruyen.net/mangas/3214",
+      "https://cuutruyen.net/mangas/2920",
+      "https://cuutruyen.net/mangas/3333",
+      "https://cuutruyen.net/mangas/3003",
+      "https://cuutruyen.net/mangas/2935",
+      "https://cuutruyen.net/mangas/2988",
+      "https://cuutruyen.net/mangas/2979",
+      "https://cuutruyen.net/mangas/3001",
+      "https://cuutruyen.net/mangas/3151",
+      "https://cuutruyen.net/mangas/2925",
+      "https://cuutruyen.net/mangas/3173",
+      "https://cuutruyen.net/mangas/3155",
+      "https://cuutruyen.net/mangas/3072",
+      "https://cuutruyen.net/mangas/2987",
+      "https://cuutruyen.net/mangas/2912",
+      "https://cuutruyen.net/mangas/2944",
+      "https://cuutruyen.net/mangas/2931",
+      "https://cuutruyen.net/mangas/2919",
+      "https://cuutruyen.net/mangas/2910"
+    ];
+    const url = links[Math.floor(Math.random() * links.length)];
+    setTimeout(() => {
+      window.location.href = url;
+    }, 1000);
+  </script>
+</body>
+</html>
