@@ -1,39 +1,100 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Chuyển hướng truyện ngẫu nhiên...</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Random Manga Redirect</title>
+  <style>
+    body {
+      background: #0f0f0f;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 20vh;
+    }
+    h1 {
+      color: #f472b6;
+      text-shadow: 0 0 10px #f472b6;
+    }
+    button {
+      padding: 1em 2em;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #f472b6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(244,114,182,0.5);
+    }
+  </style>
 </head>
-<body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;padding-top:20%;">
-  <h1>🔄 Đang chuyển hướng đến một truyện ngẫu nhiên...</h1>
-  <p>Vui lòng đợi một chút nhé!</p>
+<body>
+  <h1>🎲 Đang chọn manga ngẫu nhiên...</h1>
+  <p>Nếu lâu, vui lòng nhấn nút bên dưới:</p>
+  <button id="retryBtn" style="display:none;">Chọn lại</button>
+
   <script>
-    const links = [
-      "https://cuutruyen.net/mangas/3214",
-      "https://cuutruyen.net/mangas/2920",
-      "https://cuutruyen.net/mangas/3333",
-      "https://cuutruyen.net/mangas/3003",
-      "https://cuutruyen.net/mangas/2935",
-      "https://cuutruyen.net/mangas/2988",
-      "https://cuutruyen.net/mangas/2979",
-      "https://cuutruyen.net/mangas/3001",
-      "https://cuutruyen.net/mangas/3151",
-      "https://cuutruyen.net/mangas/2925",
-      "https://cuutruyen.net/mangas/3173",
-      "https://cuutruyen.net/mangas/3155",
-      "https://cuutruyen.net/mangas/3072",
-      "https://cuutruyen.net/mangas/2987",
-      "https://cuutruyen.net/mangas/2912",
-      "https://cuutruyen.net/mangas/2944",
-      "https://cuutruyen.net/mangas/2931",
-      "https://cuutruyen.net/mangas/2919",
-      "https://cuutruyen.net/mangas/2910"
-    ];
-    const url = links[Math.floor(Math.random() * links.length)];
-    setTimeout(() => {
-      window.location.href = url;
-    }, 1000);
+    function waitForElm(selector) {
+      return new Promise((resolve) => {
+        if (document.querySelector(selector)) {
+          return resolve(document.querySelector(selector));
+        }
+
+        const observer = new MutationObserver(() => {
+          if (document.querySelector(selector)) {
+            observer.disconnect();
+            resolve(document.querySelector(selector));
+          }
+        });
+
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true,
+        });
+      });
+    }
+
+    waitForElm("body").then(() => {
+      let fetchedMangas = [];
+      const perPage = 50;
+      let currentPage = 1;
+      let totalPages = null;
+
+      async function redirectRandomManga(page = 1) {
+        const originUrl = `https://cuutruyen.net/api/v2/teams/485/mangas/recently_updated?page=${page}&per_page=${perPage}`;
+        const url = `https://cors-proxy.boydaihungst.workers.dev/?url=${encodeURIComponent(originUrl)}`;
+
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error("HTTP error " + response.status);
+          const json = await response.json();
+
+          if (totalPages === null) {
+            totalPages = json._metadata.total_pages;
+            const randomPage = Math.floor(Math.random() * totalPages);
+            await redirectRandomManga(randomPage);
+          } else {
+            fetchedMangas = json.data;
+            const randomManga =
+              fetchedMangas[Math.floor(Math.random() * fetchedMangas.length)];
+            if (randomManga) {
+              const mangaUrl = `https://cuutruyen.net/mangas/${randomManga.id}`;
+              window.location.href = mangaUrl;
+            }
+          }
+        } catch (err) {
+          console.error("❌ Error fetching page:", err);
+          document.body.innerHTML =
+            '<h2 style="color: red; text-align: center;">Không thể tải danh sách manga</h2>';
+        }
+      }
+
+      // Retry button
+      const btn = document.getElementById("retryBtn");
+      btn.style.display = "inline-block";
+      btn.addEventListener("click", () => location.reload());
+
+      redirectRandomManga();
+    });
   </script>
 </body>
 </html>
