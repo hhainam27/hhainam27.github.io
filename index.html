@@ -1,72 +1,34 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <title>Random Manga Redirect</title>
-  <style>
-    body {
-      background: #0f0f0f;
-      color: #fff;
-      font-family: sans-serif;
-      text-align: center;
-      padding-top: 20vh;
-    }
-    h1 {
-      color: #f472b6;
-      text-shadow: 0 0 10px #f472b6;
-    }
-    button {
-      padding: 1em 2em;
-      font-size: 1rem;
-      cursor: pointer;
-      background-color: #f472b6;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(244,114,182,0.5);
-    }
-  </style>
-</head>
-<body>
-  <h1>🎲 Đang chọn manga ngẫu nhiên...</h1>
-  <p>Nếu lâu, vui lòng nhấn nút bên dưới:</p>
-  <button id="retryBtn" style="display:none;">Chọn lại</button>
-
+  <meta charset="UTF-8">
+  <title>Redirect Random Manga</title>
   <script>
-    async function randomRedirect() {
+    document.addEventListener("DOMContentLoaded", async () => {
       try {
         const res = await fetch("https://cuutruyen.net/api/v2/teams/1/mangas/recently_updated?page=1&per_page=50");
-        if (!res.ok) throw new Error("HTTP error " + res.status);
-        const json = await res.json();
+        const data = await res.json();
 
-        if (!Array.isArray(json.data) || json.data.length === 0) throw new Error("No manga data");
+        if (!data || !Array.isArray(data.data) || data.data.length === 0) {
+          throw new Error("Không có dữ liệu");
+        }
 
-        const random = json.data[Math.floor(Math.random() * json.data.length)];
-        const url = `https://cuutruyen.net/mangas/${random.id}`;
+        // Chọn manga ngẫu nhiên
+        const randomManga = data.data[Math.floor(Math.random() * data.data.length)];
 
-        const a = document.createElement("a");
-        a.href = url;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        // Tạo URL slug
+        const mangaSlug = randomManga.slug || randomManga.title?.toLowerCase().replace(/\s+/g, "-");
 
-        // Fallback nếu popup bị chặn
-        setTimeout(() => {
-          window.location.href = url;
-        }, 300);
+        // Redirect tới trang manga
+        window.location.href = `https://cuutruyen.net/t/${mangaSlug}`;
       } catch (err) {
-        console.error("❌ Error fetching page:", err);
-        document.body.innerHTML = '<h2 style="color: red; text-align: center;">Không thể tải danh sách manga</h2>';
+        console.error("Lỗi khi random manga:", err);
+        document.body.innerHTML = `<h2 style="color: red; text-align: center;">Không thể tải danh sách manga</h2>`;
       }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const btn = document.getElementById("retryBtn");
-      btn.addEventListener("click", () => location.reload());
-      randomRedirect();
     });
   </script>
+</head>
+<body>
+  <h1 style="text-align: center;">Đang chuyển hướng đến một manga ngẫu nhiên...</h1>
 </body>
 </html>
