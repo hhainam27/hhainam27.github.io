@@ -33,68 +33,68 @@
   <button id="retryBtn" style="display:none;">Chọn lại</button>
 
   <script>
-    function waitForElm(selector) {
-      return new Promise((resolve) => {
-        if (document.querySelector(selector)) {
-          return resolve(document.querySelector(selector));
-        }
-
-        const observer = new MutationObserver(() => {
-          if (document.querySelector(selector)) {
-            observer.disconnect();
-            resolve(document.querySelector(selector));
-          }
-        });
-
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true,
-        });
-      });
+   function waitForElm(selector) {
+  return new Promise((resolve) => {
+    if (document.querySelector(selector)) {
+      return resolve(document.querySelector(selector));
     }
 
-    waitForElm("body").then(() => {
-      let fetchedMangas = [];
-      const perPage = 50;
-      let currentPage = 1;
-      let totalPages = null;
+    const observer = new MutationObserver(() => {
+      if (document.querySelector(selector)) {
+        observer.disconnect();
+        resolve(document.querySelector(selector));
+      }
+    });
 
-      async function redirectRandomManga(page = 1) {
-        const originUrl = `https://cuutruyen.net/api/v2/teams/485/mangas/recently_updated?page=${page}&per_page=${perPage}`;
-        const url = `https://cors-proxy.boydaihungst.workers.dev/?url=${encodeURIComponent(originUrl)}`;
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  });
+}
 
-        try {
-          const response = await fetch(url);
-          if (!response.ok) throw new Error("HTTP error " + response.status);
-          const json = await response.json();
+waitForElm("body").then(() => {
+  let fetchedMangas = [];
+  const perPage = 50;
+  let currentPage = 1;
+  let totalPages = null;
 
-          if (totalPages === null) {
-            totalPages = json._metadata.total_pages;
-            const randomPage = Math.floor(Math.random() * totalPages);
-            await redirectRandomManga(randomPage);
-          } else {
-            fetchedMangas = json.data;
-            const randomManga =
-              fetchedMangas[Math.floor(Math.random() * fetchedMangas.length)];
-            if (randomManga) {
-              const mangaUrl = `https://cuutruyen.net/mangas/${randomManga.id}`;
-              window.location.href = mangaUrl;
-            }
-          }
-        } catch (err) {
-          console.error("❌ Error fetching page:", err);
-          document.body.innerHTML =
-            '<h2 style="color: red; text-align: center;">Không thể tải danh sách manga</h2>';
+  async function redirectRandomManga(page = 1) {
+    const originUrl = `https://cuutruyen.net/api/v2/teams/485/mangas/recently_updated?page=${page <= 0 ? 1 : page}&per_page=${perPage <= 0 ? 1 : perPage}`;
+    const url = `https://cors-proxy.boydaihungst.workers.dev/?url=${encodeURIComponent(originUrl)}`;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("HTTP error " + response.status);
+      const json = await response.json();
+
+      if (totalPages === null) {
+        totalPages = json._metadata.total_pages;
+        const randomPage = Math.floor(Math.random() * totalPages) + 1;
+        await redirectRandomManga(randomPage);
+      } else {
+        fetchedMangas = json.data;
+        const randomManga =
+          fetchedMangas[Math.floor(Math.random() * fetchedMangas.length) + 1];
+        if (randomManga) {
+          const mangaUrl = `https://cuutruyen.net/mangas/${randomManga.id}`;
+          window.location.href = mangaUrl;
         }
       }
+    } catch (err) {
+      console.error("❌ Error fetching page:", err);
+      document.body.innerHTML =
+        '<h2 style="color: red; text-align: center;">Không thể tải danh sách manga</h2>';
+    }
+  }
 
-      // Retry button
-      const btn = document.getElementById("retryBtn");
-      btn.style.display = "inline-block";
-      btn.addEventListener("click", () => location.reload());
+  // Retry button
+  waitForElm("#retryBtn").then((btn) => {
+    btn.style.display = "inline-block";
+    btn.addEventListener("click", () => location.reload());
+  })
 
-      redirectRandomManga();
-    });
-  </script>
+  redirectRandomManga();
+});
 </body>
 </html>
